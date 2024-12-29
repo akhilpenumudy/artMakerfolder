@@ -27,10 +27,11 @@ class PixelArtMaker:
         print("1. Horizontal")
         print("2. Vertical")
         print("3. Diagonal")
+        print("4. Radial")  # Add radial gradient option
 
         while True:
-            gradient_type = input("Select gradient type (1-3): ")
-            if gradient_type in ["1", "2", "3"]:
+            gradient_type = input("Select gradient type (1-4): ")
+            if gradient_type in ["1", "2", "3", "4"]:
                 break
             print("Please select a valid option.")
 
@@ -97,8 +98,13 @@ class PixelArtMaker:
             factor = x / (width - 1)
         elif gradient_type == "2":  # Vertical
             factor = y / (height - 1)
-        else:  # Diagonal
+        elif gradient_type == "3":  # Diagonal
             factor = (x + y) / (width + height - 2)
+        else:  # Radial
+            center_x, center_y = width / 2, height / 2
+            max_distance = ((center_x) ** 2 + (center_y) ** 2) ** 0.5
+            distance = ((x - center_x) ** 2 + (y - center_y) ** 2) ** 0.5
+            factor = distance / max_distance
 
         segment_size = 1.0 / (len(colors) - 1)
         segment_index = int(factor / segment_size)
