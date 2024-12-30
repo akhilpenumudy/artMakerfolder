@@ -117,9 +117,46 @@ class PixelArtMaker:
         )
         return self.dither_color(color, x, y)
 
-    def save_image(self, screen):
+    def save_image(self, screen, filename):
         """Save the current screen as a PNG image."""
-        pygame.image.save(screen, "pixel_art.png")
+        pygame.image.save(screen, filename)
+
+    def draw_pixel_art(
+        self,
+        screen,
+        grid_colors,
+        rows,
+        cols,
+        cell_size,
+        draw_grid=True,
+        draw_numbers=True,
+    ):
+        """Draw the pixel art on the screen."""
+        for row in range(rows):
+            for col in range(cols):
+                x = col * cell_size
+                y = row * cell_size
+
+                color = grid_colors[row][col]
+
+                # Draw the colored rectangle
+                pygame.draw.rect(screen, color, (x, y, cell_size, cell_size))
+
+                if draw_grid:
+                    # Draw the border
+                    pygame.draw.rect(
+                        screen, self.BLACK, (x, y, cell_size, cell_size), 1
+                    )
+
+                if draw_numbers:
+                    # Draw the number
+                    color_key = tuple(color)
+                    color_number = self.unique_colors[color_key]
+                    text = self.font.render(str(color_number), True, self.BLACK)
+                    text_rect = text.get_rect(
+                        center=(x + cell_size / 2, y + cell_size / 2)
+                    )
+                    screen.blit(text, text_rect)
 
     def run(self):
         rows, cols = self.get_dimensions()
@@ -141,7 +178,7 @@ class PixelArtMaker:
         screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Pixel Art Maker")
 
-        unique_colors = {}
+        self.unique_colors = {}
         color_counter = 1
 
         # Create a grid to store colors
@@ -162,10 +199,6 @@ class PixelArtMaker:
             # Draw the grid and fill cells with colors
             for row in range(rows):
                 for col in range(cols):
-                    x = col * CELL_SIZE
-                    y = row * CELL_SIZE
-
-                    # Get color for this position
                     original_color = self.get_color_for_position(
                         col, row, cols, rows, gradient_type, colors
                     )
@@ -173,33 +206,43 @@ class PixelArtMaker:
 
                     # Assign unique number to each color
                     color_key = tuple(limited_color)
-                    if color_key not in unique_colors:
-                        unique_colors[color_key] = color_counter
+                    if color_key not in self.unique_colors:
+                        self.unique_colors[color_key] = color_counter
                         color_counter += 1
-                    color_number = unique_colors[color_key]
 
                     grid_colors[row][col] = limited_color  # Store the color in the grid
 
-                    # Draw the colored rectangle
-                    pygame.draw.rect(
-                        screen, limited_color, (x, y, CELL_SIZE, CELL_SIZE)
-                    )
-
-                    # Draw the border
-                    pygame.draw.rect(
-                        screen, self.BLACK, (x, y, CELL_SIZE, CELL_SIZE), 1
-                    )
-
-                    # Draw the number
-                    text = self.font.render(str(color_number), True, self.BLACK)
-                    text_rect = text.get_rect(
-                        center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2)
-                    )
-                    screen.blit(text, text_rect)
-
+            # Draw the pixel art with grid lines and numbers
+            self.draw_pixel_art(
+                screen,
+                grid_colors,
+                rows,
+                cols,
+                CELL_SIZE,
+                draw_grid=True,
+                draw_numbers=True,
+            )
             pygame.display.flip()
 
-        self.save_image(screen)  # Save the image before quitting
+        # Save the image with grid lines and numbers
+        self.save_image(screen, "pixel_art_with_grid.png")
+
+        # Draw the pixel art without grid lines and numbers
+        screen.fill(self.WHITE)
+        self.draw_pixel_art(
+            screen,
+            grid_colors,
+            rows,
+            cols,
+            CELL_SIZE,
+            draw_grid=False,
+            draw_numbers=False,
+        )
+        pygame.display.flip()
+
+        # Save the image without grid lines and numbers
+        self.save_image(screen, "pixel_art.png")
+
         pygame.quit()
         sys.exit()
 
